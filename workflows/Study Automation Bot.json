@@ -1,0 +1,168 @@
+{
+  "name": "Study Automation Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "db0efc85-9b90-4f11-abc8-1f88b32b331b",
+      "name": "Telegram Trigger",
+      "webhookId": "4905cbee-66fe-40a9-9f43-4e29a8d1dae2",
+      "credentials": {
+        "telegramApi": {
+          "id": "QZlyWpoTmE8ZyGrn",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57c0d8f2-b131-4c0e-9bc2-cb5b1b988035",
+              "leftValue": "={{ $json.message.from.id }}",
+              "rightValue": 7677042350,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "8a613343-d1c9-413a-9ee8-1f0750bf84d3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-lite-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-lite-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Você é um tutor acadêmico especializado em síntese de conteúdo.\nAnalise o texto abaixo e me devolva os pontos principais organizados em tópicos (bullet points):\nTexto do aluno:\n{{ $json.message.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "341989af-57ca-429a-a36c-2c9a1d4fc7b0",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "5bQrQyZc1HY0xEEc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        -96
+      ],
+      "id": "a4f52c25-2eee-4fe0-a96a-774088dca60d",
+      "name": "Send a text message",
+      "webhookId": "413349f8-fa27-4216-bc6a-91e971f02e90",
+      "credentials": {
+        "telegramApi": {
+          "id": "QZlyWpoTmE8ZyGrn",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f5d0ce29-5ff6-4152-8871-404e7d835bdd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2562b4121754d1f4f1dba0910d7dd7e7c6ba709a23099a3641517a71b99170d3"
+  },
+  "nodeGroups": [],
+  "id": "FDzjayFHnBl2GXFk",
+  "tags": []
+}
