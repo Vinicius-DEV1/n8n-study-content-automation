@@ -70,7 +70,7 @@
         "messages": {
           "values": [
             {
-              "content": "=Você é um tutor acadêmico especializado em síntese de conteúdo.\nAnalise o texto abaixo e me devolva os pontos principais organizados em tópicos (bullet points):\nTexto do aluno:\n{{ $json.message.text }}"
+              "content": "=Você é um tutor acadêmico especializado em síntese de conteúdo.\nAnalise o texto abaixo e me devolva os pontos principais organizados em tópicos (bullet points):\n\nRegra de Formatação: Não utilize Markdown (como asteriscos para negrito ou hashtags). O Telegram não suporta. Use apenas texto puro, emojis e quebras de linha para formatar os tópicos.\n\nTexto do aluno:{{ $json.texto_final }}"
             }
           ]
         },
@@ -80,7 +80,7 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1.2,
       "position": [
-        448,
+        1104,
         -96
       ],
       "id": "341989af-57ca-429a-a36c-2c9a1d4fc7b0",
@@ -101,8 +101,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        816,
-        -96
+        1504,
+        -112
       ],
       "id": "a4f52c25-2eee-4fe0-a96a-774088dca60d",
       "name": "Send a text message",
@@ -113,6 +113,144 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.document.file_name }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "3d6c2efb-9937-409b-ae69-bac3bed33897"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Arquivo PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a8648c4e-6982-4cc4-875c-1dccd71697f3",
+                    "leftValue": "={{ $json.message.document.file_name }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto Livre"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -128
+      ],
+      "id": "5a6b0593-3c71-4e87-80bc-87066709bb3e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        -416
+      ],
+      "id": "85bc235f-c700-4aa7-b730-fd721851185e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0457f8cd-4aa1-44d2-b96c-2d64e3d02f33",
+              "name": "texto_final",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        704,
+        64
+      ],
+      "id": "beaf5fc3-cacb-493d-82ad-6413609e8d8e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33861188-cd9a-493f-8d9a-86d462845f5c",
+              "name": "texto_final",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        912,
+        -416
+      ],
+      "id": "9010d945-704a-40e8-8cd6-69547713b4bc",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        752,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "a3bf4988-aa64-4410-b506-d5ef2462533b",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -132,7 +270,7 @@
       "main": [
         [
           {
-            "node": "Message a model",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -149,6 +287,57 @@
           }
         ]
       ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -157,7 +346,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "f5d0ce29-5ff6-4152-8871-404e7d835bdd",
+  "versionId": "a1c508f6-6632-452d-87b0-436be80dce04",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "2562b4121754d1f4f1dba0910d7dd7e7c6ba709a23099a3641517a71b99170d3"
